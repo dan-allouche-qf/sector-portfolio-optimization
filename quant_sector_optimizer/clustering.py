@@ -1,17 +1,17 @@
 """Clustering helpers.
 
-REFACTOR: the previous notebook clustered tickers using ``StandardScaler`` on
-the **time series of returns** themselves (each ticker = a 3700-dim vector).
-This is brittle: standardizing each series to mean=0 std=1 destroys exactly
-the volatility information that should drive the grouping, and the resulting
-distance has little economic meaning.
+Tickers are clustered in **correlation-distance** space
+``d_ij = sqrt(0.5·(1 - ρ_ij))`` — a true metric on [0, 1] that treats two
+assets as close when their co-movement pattern is similar. This is also the
+distance HRP uses internally.
 
-The standard practice for asset clustering is to use **correlation distance**
-``d_ij = sqrt(0.5·(1 - ρ_ij))``, which is a true metric on [0, 1] and treats
-two tickers as close when their *co-movement* pattern is similar.
+Standardizing the raw return series with ``StandardScaler`` and clustering on
+those vectors is *not* used here: it destroys the volatility information that
+should drive the grouping and produces a distance with little economic
+meaning.
 
-ADDED: ``hrp_cluster_labels`` exposes the natural cluster assignment derived
-from the same single-linkage tree used by the HRP optimizer.
+``hrp_cluster_labels`` exposes the cluster assignment derived from the same
+single-linkage tree used by the HRP optimizer.
 """
 
 from __future__ import annotations

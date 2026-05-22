@@ -1,11 +1,10 @@
 """Data I/O and preparation.
 
-REFACTOR: split out from the original ``portfolio_utils`` to isolate I/O from
-modeling. Pickle is replaced by Parquet (smaller, faster, schema-aware) but
-``load_panel`` still falls back to ``.pkl`` so legacy artifacts keep working.
+I/O is split from modeling. The on-disk format is Parquet (smaller, faster,
+schema-aware); ``load_panel`` also accepts ``.pkl`` for legacy artifacts.
 
-REMOVED: the silent High/Low rewrite in ``clean_ohlc`` — corrections are now
-returned alongside the cleaned frame so callers can audit them.
+``clean_ohlc`` returns the audit alongside the cleaned frame so callers can
+see exactly which rows were dropped or repaired.
 """
 
 from __future__ import annotations
@@ -82,8 +81,8 @@ def clean_ohlc(
       1. Drop rows with non-positive prices.
       2. Drop rows above ``extreme_threshold`` (data-error guard).
       3. Repair OHLC hierarchy: enforce ``High = max(O,H,C)`` and
-         ``Low = min(O,L,C)``. The corrections are *logged* and reported in
-         ``audit``, no longer applied silently.
+         ``Low = min(O,L,C)``. Corrections are logged and reported in
+         ``audit`` so the caller can inspect them.
     """
     price_columns = list(price_columns)
     audit = {"removed_non_positive": 0, "removed_extreme": 0, "high_fixes": 0, "low_fixes": 0}
@@ -106,7 +105,7 @@ def clean_ohlc(
     audit["low_fixes"] = int((df["Low"] != actual_low).sum())
     if audit["high_fixes"] or audit["low_fixes"]:
         logger.info(
-            "clean_ohlc: repaired %d High and %d Low values (logged, not silent)",
+            "clean_ohlc: repaired %d High and %d Low values",
             audit["high_fixes"], audit["low_fixes"],
         )
     df = df.copy()
@@ -121,8 +120,8 @@ def clean_ohlc(
 def prepare_returns(df: pd.DataFrame, price_col: str = "Close") -> pd.DataFrame:
     """Add a ``Daily_Return`` column to a long-format panel.
 
-    REFACTOR: identical contract to the original ``prepare_data`` but explicit
-    about which price column is used (was implicitly ``Close``).
+    ``price_col`` is explicit so the caller can compute returns on adjusted
+    prices, total-return prices, etc.
     """
     out = df.sort_values(["Ticker", "Date"]).copy()
     out["Daily_Return"] = out.groupby("Ticker", observed=True)[price_col].pct_change()
@@ -132,10 +131,9 @@ def prepare_returns(df: pd.DataFrame, price_col: str = "Close") -> pd.DataFrame:
 def pivot_returns(df: pd.DataFrame, value: str = "Daily_Return") -> pd.DataFrame:
     """Long → wide returns matrix. NaNs are preserved (no global ``dropna``).
 
-    REFACTOR: the previous code called ``.dropna(axis=1)`` immediately, which
-    silently introduced survivorship bias (only tickers with full history
-    survived). We keep the ragged matrix and let the backtest engine decide
-    asset eligibility per rolling window.
+    Keeping the ragged matrix is what lets the backtest engine decide
+    eligibility per rolling window and avoid survivorship bias from
+    dropping any column with partial history.
     """
     return df.pivot(index="Date", columns="Ticker", values=value).sort_index()
 

@@ -1,26 +1,25 @@
 """Long-only portfolio optimizers.
 
-REFACTOR: optimizers now operate on a *precomputed* covariance matrix (and
-mean vector for max-Sharpe). This decouples covariance estimation from
-optimization — the same optimizer can be run with sample, Ledoit-Wolf, or any
-custom estimator.
+Optimizers operate on a *precomputed* covariance matrix (and mean vector for
+max-Sharpe). This decouples covariance estimation from optimization — the
+same optimizer can be run with sample, Ledoit-Wolf, or any custom estimator.
 
-REFACTOR (max_sharpe): the previous direct SLSQP minimization of -Sharpe is
-non-convex (fractional programming) and gets stuck in local optima from a
-single equal-weight start. We now solve the equivalent **convex QP** via the
-Schur transform (Cornuéjols & Tütüncü):
+``max_sharpe`` is solved as a **convex QP** via the Schur transform
+(Cornuéjols & Tütüncü):
 
     minimize    y' Σ y
     subject to  (μ - rf · 1)' y = 1
                 y >= 0
     return      w = y / sum(y)
 
-This is mathematically equivalent and *globally* solvable. When no asset has
+Direct SLSQP minimization of −Sharpe is non-convex (fractional programming)
+and can get trapped in local optima from a single starting point; the Schur
+form is mathematically equivalent and *globally* solvable. When no asset has
 positive excess return, max-Sharpe is degenerate and we fall back to
 min-variance.
 
-ADDED: ``hrp`` (Hierarchical Risk Parity, López de Prado 2016) — robust when
-N is large relative to T because it never inverts Σ.
+``hrp`` (Hierarchical Risk Parity, López de Prado 2016) is robust when N is
+large relative to T because it never inverts Σ.
 """
 
 from __future__ import annotations

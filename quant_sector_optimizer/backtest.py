@@ -1,11 +1,9 @@
 """Backtesting engine.
 
-REFACTOR (correctness): the previous ``compute_portfolio_cumulative_return``
-forward-filled rebalance weights and computed ``Σ wᵢ·rᵢ`` every day. That is
+Buy-and-hold-between-rebalances semantics. A daily ``Σ wᵢ·rᵢ`` is
 mathematically equivalent to **rebalancing daily back to the target weights**
-(volatility pumping). The advertised behavior was buy-and-hold between
-rebalances, where weights drift with prices. This bias systematically
-inflates returns. We now implement the correct semantics:
+(volatility pumping) and systematically inflates returns. The engine here
+tracks notionals instead:
 
     1. At rebalance ``d_k``: convert NAV into per-asset notionals
        ``v_i = w_i · NAV(d_k-)``.
@@ -13,10 +11,10 @@ inflates returns. We now implement the correct semantics:
        NAV(t) = Σ v_i(t).
     3. At ``d_{k+1}``: rebalance ``v_i = w_i_new · NAV(d_{k+1}-)``.
 
-REFACTOR (survivorship): the rebalance loop no longer calls ``dropna(axis=1)``
-on the full universe. Instead, at each rebalance date we keep tickers that
-have *complete* data over the **lookback window** only — past delistings or
-late entrants neither inflate nor deflate other dates' results.
+Survivorship is handled per rolling window — at each rebalance date the
+universe is restricted to tickers with complete data over the lookback
+window. A global ``dropna(axis=1)`` is never applied: past delistings and
+late entrants don't bias other dates' results.
 """
 
 from __future__ import annotations
@@ -50,8 +48,7 @@ def compute_rebalance_weights(
     the rebalance date — to keep the backtest free of look-ahead bias.
 
     A ticker is eligible at date ``d`` only if it has **no NaN** in the window
-    AND at least ``min_history`` observations. This is the per-window
-    eligibility filter that replaces the global ``dropna``.
+    AND at least ``min_history`` observations.
     """
     rebalance_dates = sorted(pd.DatetimeIndex(rebalance_dates))
     rows = []
