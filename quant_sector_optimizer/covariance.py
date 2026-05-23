@@ -1,12 +1,12 @@
 """Covariance estimators.
 
-ADDED: Ledoit-Wolf shrinkage (sklearn) — the default. The plain sample
-covariance is rank-deficient when T < N and dangerously noisy when T ≈ N,
-which is the regime of these notebooks (T ≈ 1260 days, N up to ~80 in
-intra-sector windows).
+Ledoit-Wolf shrinkage is the default: the plain sample covariance is
+rank-deficient when T < N and dangerously noisy when T ≈ N, which is the
+regime of these notebooks (T ≈ 1260 days, N up to ~80 in intra-sector
+windows).
 
-A ``CovEstimator`` callable type lets callers swap estimators without changing
-the optimizer signature.
+The ``CovEstimator`` callable type lets callers swap estimators without
+changing the optimizer signature.
 """
 
 from __future__ import annotations

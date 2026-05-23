@@ -32,7 +32,7 @@ def test_prepare_returns_pct_change():
 
 def test_pivot_returns_preserves_nans():
     """Critical: the pivot must NOT drop columns with partial history.
-    The original code did, which produced survivorship bias."""
+    Dropping them would produce survivorship bias."""
     df = pd.DataFrame(
         {
             "Date": pd.to_datetime(["2024-01-02", "2024-01-03", "2024-01-04"] * 2),

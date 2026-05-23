@@ -1,11 +1,11 @@
 """Performance and risk metrics.
 
-ADDED: Sortino, max drawdown, Calmar, hit ratio, turnover, full summary.
+Includes Sharpe, Sortino, max drawdown, Calmar, hit ratio, turnover, and a
+``performance_summary`` that packages them.
 
-REFACTOR: a single ``periods_per_year`` argument controls annualization
-everywhere — and **CAGR uses geometric compounding consistently**, fixing the
-prior inconsistency where the optimizer used ``μ·T`` (linear) and the display
-used ``(1+μ)^T - 1`` (compound).
+A single ``periods_per_year`` argument controls annualization everywhere,
+and CAGR uses geometric compounding consistently — the same convention used
+by the optimizers, so optimized and displayed Sharpe agree.
 """
 
 from __future__ import annotations

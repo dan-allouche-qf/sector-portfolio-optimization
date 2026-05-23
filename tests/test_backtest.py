@@ -1,7 +1,8 @@
 """Backtest correctness tests.
 
-These are the most important tests: they pin down the buy-and-hold-between-
-rebalances semantics that the original code violated.
+Pin down the buy-and-hold-between-rebalances semantics — in particular that
+the NAV path is not equivalent to daily rebalancing back to the target
+weights (vol-pumping).
 """
 
 from __future__ import annotations
@@ -36,7 +37,7 @@ def test_single_rebalance_buy_and_hold(rng_seed=0):
 
 def test_buy_and_hold_differs_from_daily_rebalance():
     """Sanity check: a vol-pumping path (large dispersion) makes buy-and-hold
-    diverge from the daily-rebalance approximation that the old code used."""
+    diverge from a daily-rebalance approximation."""
     n = 50
     dates = pd.bdate_range("2024-01-02", periods=n)
     rng = np.random.default_rng(123)

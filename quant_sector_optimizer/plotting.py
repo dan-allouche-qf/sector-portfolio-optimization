@@ -1,14 +1,9 @@
 """Plotly figures.
 
-REMOVED: the ipywidgets dropdowns in the original module. They never worked
-when the notebook renderer was set to ``"png"`` (the static export used to
-keep figures inline on GitHub). Static plots are clearer for static notebooks
-and the data slicing now lives where it belongs (in the notebook, before the
-plot call).
-
-REFACTOR: every helper now returns the Plotly ``Figure`` instead of calling
-``fig.show()`` itself. Returning the figure makes the helpers composable and
-testable.
+Each helper returns a ``Figure`` instead of calling ``fig.show()`` itself —
+this keeps the helpers composable and testable, and lets the notebooks slice
+the data before plotting rather than relying on in-figure ipywidgets (which
+do not render when ``pio.renderers.default`` is set to a static format).
 """
 
 from __future__ import annotations
